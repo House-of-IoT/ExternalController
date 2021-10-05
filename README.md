@@ -20,10 +20,10 @@ A service that controlls devices in relation to each other.
  
  # Constraints
  
- The way that the external controller knows when a action should be triggered is through "constraints" aka "relations".
+ The way that the external controller knows when a action should be triggered is through "conditions" aka "relations".
  
  Take a look at this [document](https://github.com/House-of-IoT/HOI-GeneralServer/blob/master/Docs/ChainControlling.MD) to get more information on the technical aspect of how 
- relations are setup.
+ conditions are setup.
  
  
 # How do you setup this service and its relational actions?
