@@ -33,6 +33,7 @@ class RelationManager:
         relations = []
         file = open("relations.json","r") 
         file_data = file.read()
+        file.close()
         relation_data =  json.loads(file_data)
         for relation in relation_data["relations"]:
             relations.append(relation)
