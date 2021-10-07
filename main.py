@@ -19,7 +19,6 @@ class Main:
     async def establish_websocket_connection(self):
         self.websocket = self.client.establish_connection()
 
-
     async def gather_data_and_analyze(self):
         try:
             await asyncio.wait_for(self.websocket.send("passive_data"),20)
