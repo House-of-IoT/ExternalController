@@ -12,7 +12,7 @@ class RelationManager:
         self.relations = self.get_relations()
         self.bots = {}
 
-    def check_passive_data_for_matching_conditions_and_execute_actions(self,passive_data):
+    async def check_passive_data_for_matching_conditions_and_execute_actions(self,passive_data):
         pass
 
     """
@@ -36,7 +36,7 @@ class RelationManager:
         relation_data =  json.loads(file_data)
         for relation in relation_data["relations"]:
             relations.append(relation)
-        return relation
+        return relations
 
     def condition_present_in_passive_data(self,key,value,bot_name):
         if bot_name in self.bots:
