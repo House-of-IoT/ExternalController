@@ -3,7 +3,7 @@ import json
 """
 To Change?
 We are storing the device name twice after organization of bots
-via organize_bots_to_minimize_searching. This is a minimal
+via organize_bots_to_minimize_searching -> Fn() . This is a minimal
 improvement on storage consumption.
 """
 
@@ -16,9 +16,9 @@ class RelationManager:
         pass
 
     """
-    Background: We recieve a list of objects from the server.
+    Background: We recieve a list of objects from the server that are the bots.
 
-    We re-organize the the data(linear complexity) with the keys representing the 
+    We re-organize the  data(linear complexity) with the keys representing the 
     bot data and then have constant time look up on the bot data. 
     """
     def organize_bots_to_minimize_searching(self,bot_data):
