@@ -1,1 +1,0 @@
-{"relations": [{"bot_name": "water_valve", "action": "open", "conditions": [{"bot_name": "soil_monitor", "humidity": 2}]}]}
