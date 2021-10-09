@@ -28,6 +28,7 @@ class RelationManager:
                     if key != "device_name":
                         if self.condition_present_in_passive_data(key,condition[key],name) == False:
                             self.all_conditions_satisfied = False
+                            await self.execute_action_if_conditions_were_satisfied(relation["action"])
                 
     """
     Background: We recieve a list of objects from the server that are the bots.
@@ -60,4 +61,5 @@ class RelationManager:
             return False
     
     async def execute_action_if_conditions_were_satisfied(self,action):
-        pass
+        await self.parent.websocket.send(action)
+        #consider api for recent external actions
