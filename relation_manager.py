@@ -1,4 +1,5 @@
 import json
+from typing import KeysView
 
 """
 To Change?
@@ -8,13 +9,26 @@ improvement on storage consumption.
 """
 
 class RelationManager:
-    def __init__(self):
+    def __init__(self,parent):
         self.relations = self.get_relations()
+        self.all_conditions_satisfied = None
         self.bots = {}
+        self.parent = parent
 
     async def check_passive_data_for_matching_conditions_and_execute_actions(self,passive_data):
-        pass
-
+        self.organize_bots_to_minimize_searching(passive_data)
+        self.all_conditions_satisfied = True
+        # for every relation
+        for relation in self.relations:
+            #check each relation's condition to see if it is met
+            for condition in relation["conditions"]:
+                name = condition["bot_name"]
+                keys = condition.keys()
+                for key in keys:
+                    if key != "device_name":
+                        if self.condition_present_in_passive_data(key,condition[key],name) == False:
+                            self.all_conditions_satisfied = False
+                
     """
     Background: We recieve a list of objects from the server that are the bots.
 
@@ -30,14 +44,11 @@ class RelationManager:
                 self.bots[name] = bot
 
     def get_relations(self):
-        relations = []
         file = open("relations.json","r") 
         file_data = file.read()
         file.close()
         relation_data =  json.loads(file_data)
-        for relation in relation_data["relations"]:
-            relations.append(relation)
-        return relations
+        return relation_data["relations"]
 
     def condition_present_in_passive_data(self,key,value,bot_name):
         if bot_name in self.bots:
@@ -47,3 +58,6 @@ class RelationManager:
                 return False
         else:
             return False
+    
+    async def execute_action_if_conditions_were_satisfied(self,action):
+        pass
