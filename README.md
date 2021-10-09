@@ -18,7 +18,7 @@ A service that controlls devices in relation to each other.
  
  the external controller would monitor the soil moisture/humidity's passive data and determine if it should trigger the device.
  
- # Constraints
+ # Conditions
  
  The way that the external controller knows when a action should be triggered is through "conditions" aka "relations".
  
