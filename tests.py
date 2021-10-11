@@ -19,7 +19,7 @@ class Tests(unittest.TestCase):
     def generate_static_relation_config(self):
         mock_relation_config = {
             "relations" : [
-                {"bot_name":"water_valve", "action":"open", "conditions":[{"bot_name":"soil_monitor", "humidity":2}]}
+                {"device_name":"water_valve", "action":"open", "conditions":[{"device_name":"soil_monitor", "humidity":2}]}
             ]
         }
         with open("relations.json","w") as File:

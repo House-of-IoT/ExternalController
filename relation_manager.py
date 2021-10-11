@@ -22,13 +22,13 @@ class RelationManager:
         for relation in self.relations:
             #check each relation's condition to see if it is met
             for condition in relation["conditions"]:
-                name = condition["bot_name"]
+                name = condition["device_name"]
                 keys = condition.keys()
                 for key in keys:
                     if key != "device_name":
                         if self.condition_present_in_passive_data(key,condition[key],name) == False:
                             self.all_conditions_satisfied = False
-                            await self.execute_action_if_conditions_were_satisfied(relation["action"])
+                            await self.execute_action_if_conditions_were_satisfied(relation["action"],relation["device_name"])
                 
     """
     Background: We recieve a list of objects from the server that are the bots.
@@ -60,6 +60,8 @@ class RelationManager:
         else:
             return False
     
-    async def execute_action_if_conditions_were_satisfied(self,action):
+    async def execute_action_if_conditions_were_satisfied(self,action,bot_name):
+        await self.parent.websocket.send("bot_control")
         await self.parent.websocket.send(action)
+        await self.parent.websocket.send(bot_name)
         #consider api for recent external actions
