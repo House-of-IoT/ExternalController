@@ -1,10 +1,9 @@
 import json
 
 class RelationConfig:
-    def __init__(self):
-        pass
 
-    def prompt_and_gather_relations(self):
+    @staticmethod
+    def prompt_and_gather_relations():
         relations = []
         conditions  = []
         
@@ -24,9 +23,13 @@ class RelationConfig:
             more_relations  = input("Would you like to continue creating more relations?[y/n]:")
             if more_relations != "y" and more_relations != "Y":
                 break
-        self.write_relations(relations)
-
-    def write_relations(self,relations):
+        RelationConfig.write_relations(relations)
+    @staticmethod
+    def write_relations(relations):
         data_dict = {'relations': relations}
         with open("relations.json","w") as File:
             File.write(json.dumps(data_dict))
+
+
+if __name__ == "__main__":
+    RelationConfig.prompt_and_gather_relations()
