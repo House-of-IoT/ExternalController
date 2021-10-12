@@ -28,5 +28,14 @@ class Server:
         else:
             return False
 
-    def main_loop(self,websocket,name):
-        pass
+    async def main_loop(self,websocket,name):
+        while name in self.devices:
+            message = await websocket.recv()
+            if message == "add_relation" or message == "remove_relation":
+                pass
+            elif message == "remove_all_relations":
+                pass
+            else:#viewing relations
+                pass
+
+
