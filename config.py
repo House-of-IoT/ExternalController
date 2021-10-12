@@ -2,23 +2,35 @@ import json
 import hoi_client
 import os
 
-def set_config():
+def set_config(file_name = None):
     data_dict = {}
     data_dict["host"] = input('host:\n')
     data_dict["port"] = int(input("port:\n"))
     data_dict["name"] = input("name:\n")
     data_dict["type"] = input("type")
-    
-    with open("config.json" , "w") as File:
+
+    if file_name == None:
+        file_name = "config.json"
+
+    with open(file_name , "w") as File:
         data_to_write = json.dumps(data_dict)
         File.write(data_to_write)
 
-def gather_config():
-     with open("config.json" , "r") as File:
+def gather_config(file_name = None):
+
+    if file_name == None:
+        file_name = "config.json"
+
+    with open(file_name , "r") as File:
        data = json.loads(File.read())
        password = os.environ.get("hoi_mdc_pw")
        config = hoi_client.Config(data["port"],data["host"],password,data["name"],data["type"])
        return config
        
 if __name__ == "__main__":
-    set_config()
+    input_data = input("would you like to set up config for connecting to the general server?[y/n]:")
+
+    if input_data == "y" or input_data == "Y":
+        set_config()
+    else:
+        set_config("server_config")
