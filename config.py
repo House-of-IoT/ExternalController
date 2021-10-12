@@ -16,16 +16,19 @@ def set_config(file_name = None):
         data_to_write = json.dumps(data_dict)
         File.write(data_to_write)
 
-def gather_config(file_name = None):
-
+def gather_config(file_name = None, env_pw_name = "hoi_mdc_pw"):
+    
     if file_name == None:
         file_name = "config.json"
 
     with open(file_name , "r") as File:
-       data = json.loads(File.read())
-       password = os.environ.get("hoi_mdc_pw")
-       config = hoi_client.Config(data["port"],data["host"],password,data["name"],data["type"])
-       return config
+        data = json.loads(File.read())
+        password = os.environ.get(env_pw_name)
+        if env_pw_name != "hoi_mdc_pw":
+            return data
+        else:
+            config = hoi_client.Config(data["port"],data["host"],password,data["name"],data["type"])
+            return config
        
 if __name__ == "__main__":
     input_data = input("would you like to set up config for connecting to the general server?[y/n]:")
