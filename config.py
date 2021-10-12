@@ -17,13 +17,14 @@ def set_config(file_name = None):
         File.write(data_to_write)
 
 def gather_config(file_name = None, env_pw_name = "hoi_mdc_pw"):
-    
+
     if file_name == None:
         file_name = "config.json"
 
     with open(file_name , "r") as File:
         data = json.loads(File.read())
         password = os.environ.get(env_pw_name)
+        data["password"] = password
         if env_pw_name != "hoi_mdc_pw":
             return data
         else:
@@ -36,4 +37,4 @@ if __name__ == "__main__":
     if input_data == "y" or input_data == "Y":
         set_config()
     else:
-        set_config("server_config")
+        set_config("server_config.json")
