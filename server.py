@@ -51,6 +51,8 @@ class Server:
     async def gather_relation_and_add(self,websocket):
         relation = await asyncio.wait_for(websocket.recv(),15)
         relation = json.loads(relation)
+        
+        #only add relation if the relation is proven to be valid
         if(self.relation_is_valid(relation)): 
             self.relations.append(relation)
             self.update_other_relation_copies()
