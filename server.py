@@ -2,11 +2,13 @@ import asyncio
 import json
 from os import name
 from config import gather_config
+from last_executed_relation import LastExecuted
+import queue
 
 class Server:
     def __init__(self,parent,relations):
         self.relations = relations
-        self.last_executed_relational_actions = None
+        self.last_executed_relational_actions = queue.Queue(5)
         self.parent = parent
         self.devices = {}
         self.config = gather_config("hoi_s_pw")
@@ -64,3 +66,11 @@ class Server:
         self.parent.relation_manager.relations = self.relations
         with open("relations.json","w") as File:
             File.write(json.dumps(self.relations))
+        
+    def add_or_replace_last_executed_relation(self,relation):
+        if self.last_executed_relational_actions.qsize() == 5:
+            self.last_executed_relational_actions.get()
+            self.last_executed_relational_actions.put(relation)
+
+        else:
+            self.last_executed_relational_actions.put(relation)
