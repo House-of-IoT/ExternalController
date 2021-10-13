@@ -32,7 +32,7 @@ class Server:
         while name in self.devices:
             message = await websocket.recv()
             if message == "add_relation" or message == "remove_relation":
-                pass
+                await self.gather_relation_and_add(websocket)
             elif message == "remove_all_relations":
                 pass
             else:#viewing relations
@@ -40,7 +40,6 @@ class Server:
 
     def relation_is_valid(self,relation):
         try:
-            relation = json.loads(relation)
             if "action" in relation and "device_name" in relation:
                 return True
             else:
@@ -48,3 +47,18 @@ class Server:
         except Exception as e:
             print(e)
             return False
+
+    async def gather_relation_and_add(self,websocket):
+        relation = await asyncio.wait_for(websocket.recv(),15)
+        relation = json.loads(relation)
+        if(self.relation_is_valid(relation)): 
+            self.relations.append(relation)
+            self.update_other_relation_copies()
+            await asyncio.wait_for(websocket.send("success"),10)
+        else:
+            await asyncio.wait_for(websocket.send("issue"),10)
+
+    def update_other_relation_copies(self):
+        self.parent.relation_manager.relations = self.relations
+        with open("relations.json","w") as File:
+            File.write(json.dumps(self.relations))
