@@ -38,4 +38,13 @@ class Server:
             else:#viewing relations
                 pass
 
-
+    def relation_is_valid(self,relation):
+        try:
+            relation = json.loads(relation)
+            if "action" in relation and "device_name" in relation:
+                return True
+            else:
+                return False
+        except Exception as e:
+            print(e)
+            return False
