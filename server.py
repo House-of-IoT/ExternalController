@@ -3,6 +3,7 @@ import json
 from os import name
 from config import gather_config
 from last_executed_relation import LastExecuted
+from datetime import datetime
 import queue
 
 class Server:
@@ -38,7 +39,7 @@ class Server:
             elif message == "remove_all_relations":
                 pass
             else:#viewing relations
-                pass
+                await self.send_last_execute_relations(websocket)
 
     def relation_is_valid(self,relation):
         try:
@@ -68,9 +69,16 @@ class Server:
             File.write(json.dumps(self.relations))
         
     def add_or_replace_last_executed_relation(self,relation):
+        last_executed = LastExecuted(relation,datetime.utcnow())
         if self.last_executed_relational_actions.qsize() == 5:
+            #remove the oldest  from the queue and add the new one
             self.last_executed_relational_actions.get()
-            self.last_executed_relational_actions.put(relation)
+            self.last_executed_relational_actions.put(last_executed)
 
         else:
-            self.last_executed_relational_actions.put(relation)
+            self.last_executed_relational_actions.put(last_executed)
+
+    async def send_last_execute_relations(self,websocket):
+        list_last_executed = list(self.last_executed_relational_actions)
+        json_list_last_executed = json.dumps(list_last_executed)
+        await asyncio.wait_for(websocket.send(json_list_last_executed))
