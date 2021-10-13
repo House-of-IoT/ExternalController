@@ -37,7 +37,7 @@ class Server:
             if message == "add_relation" or message == "remove_relation":
                 await self.gather_relation_and_add(websocket)
             elif message == "remove_all_relations":
-                pass
+                self.remove_all_relations()
             else:#viewing relations
                 await self.send_last_execute_relations(websocket)
 
@@ -82,3 +82,7 @@ class Server:
         list_last_executed = list(self.last_executed_relational_actions)
         json_list_last_executed = json.dumps(list_last_executed)
         await asyncio.wait_for(websocket.send(json_list_last_executed))
+
+    def remove_all_relations(self):
+        with open("relations.json","w") as File:
+            File.write(json.dumps({"relations":[]}))
