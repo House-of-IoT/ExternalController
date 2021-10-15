@@ -85,13 +85,60 @@ class Tests(unittest.TestCase):
 class AsyncTests(IsolatedAsyncioTestCase):
 
     async def test(self):
-        pass
+        self.last_executed_relation()
     
+    def overwrite_relation_config(self,data):
+        with open("relations.json","w") as File:
+            File.write(json.dumps({"relations" : data}))
+
     async def last_executed_relation(self):
-        server = RelationManager(self)
+        mock_passive_data = json.dumps({"bots" : [{"device_name":"soil_monitor", "active_status":True, "humidity":2}]})
+
+        #making sure the config file is setup correctly
+        self.overwrite_relation_config([{"device_name":"water_valve", "action":"open", "conditions":[{"device_name":"soil_monitor", "humidity":2}]}])
+
+        #server(required to be in the parent of relation_manager)
+        self.server = Server(self,[])
+        
+        #to be tested
+        self.relation_manager = RelationManager(self)
+
+        #websocket(required to be in the parent of relation_manager)
         self.websocket = MockWebsocket()
         
-
+        #passing mock passive data to simulate condition checking
+        await self.relation_manager.check_passive_data_for_matching_conditions_and_execute_actions(mock_passive_data)
         
+        #check side effects(server should be mutated by the relation_manager)
+        self.assertEqual(len(self.server.last_executed_relational_actions),1)
+        await self.relation_manager.check_passive_data_for_matching_conditions_and_execute_actions(mock_passive_data)
+
+        #continue checking side effects and fill up the queue to test overwritting
+        self.assertEqual(len(self.server.last_executed_relational_actions),2)
+        await self.relation_manager.check_passive_data_for_matching_conditions_and_execute_actions(mock_passive_data)
+        self.assertEqual(len(self.server.last_executed_relational_actions),3)
+        await self.relation_manager.check_passive_data_for_matching_conditions_and_execute_actions(mock_passive_data)
+        self.assertEqual(len(self.server.last_executed_relational_actions),4)
+        await self.relation_manager.check_passive_data_for_matching_conditions_and_execute_actions(mock_passive_data)
+        self.assertEqual(len(self.server.last_executed_relational_actions),5)
+
+        queue_in_list_form = list(self.server.last_executed_relational_actions)
+
+        #make sure the oldest  item is always getting overwritten. We only keep record of the newest executed relations
+        oldest_executed_relation = queue_in_list_form[0]
+        
+        await self.relation_manager.check_passive_data_for_matching_conditions_and_execute_actions(mock_passive_data)
+        self.assertEqual(len(self.server.last_executed_relational_actions),5)
+
+        second_capture_of_oldest_executed_relation = self.server.last_executed_relational_actions.get()
+
+        #the oldest item should be the second excecuted relation since the first one should have gotten overwritten.
+        self.assertFalse(oldest_executed_relation.time_data == second_capture_of_oldest_executed_relation.time_data)
+        self.assertFalse(oldest_executed_relation.relation["action"] == second_capture_of_oldest_executed_relation.relation["action"]) 
+        self.assertFalse(oldest_executed_relation.relation["device_name"] == second_capture_of_oldest_executed_relation.relation["device_name"]) 
+
+        self.assertEqual(self.server.last_executed_relational_actions.qsize ,5)
+
+
 if __name__ == "__main__":
     unittest.main()
