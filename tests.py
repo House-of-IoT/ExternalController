@@ -5,11 +5,12 @@ import json
 import unittest
 from unittest import IsolatedAsyncioTestCase
 
+"""Making utilization of mock classes to simulate the actual logic and test the side effects."""
 
 class MockRelationManager:
     def __init__(self):
         self.relations = []
-        
+
 class MockWebsocket:
     async def recv():
         pass
@@ -84,7 +85,12 @@ class Tests(unittest.TestCase):
 class AsyncTests(IsolatedAsyncioTestCase):
 
     async def test(self):
-
+        pass
+    
+    async def last_executed_relation(self):
+        server = RelationManager(self)
+        self.websocket = MockWebsocket()
+        
 
         
 if __name__ == "__main__":

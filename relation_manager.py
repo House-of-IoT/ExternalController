@@ -28,7 +28,10 @@ class RelationManager:
                     if key != "device_name":
                         if self.condition_present_in_passive_data(key,condition[key],name) == False:
                             self.all_conditions_satisfied = False
-                            await self.execute_action_if_conditions_were_satisfied(relation["action"],relation["device_name"])
+
+            #if all of the conditions were satisfied               
+            await self.execute_action_if_conditions_were_satisfied(relation["action"],relation["device_name"])
+            self.parent.server.add_or_replace_last_executed_relation(relation)
                 
     """
     Background: We recieve a list of objects from the server that are the bots.
