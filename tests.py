@@ -3,12 +3,19 @@ from relation_manager import RelationManager
 from server import Server
 import json
 import unittest
+from unittest import IsolatedAsyncioTestCase
 
 
 class MockRelationManager:
     def __init__(self):
         self.relations = []
         
+class MockWebsocket:
+    async def recv():
+        pass
+    async def send(data):
+        pass
+
 class Tests(unittest.TestCase):
 
     def tests(self):
@@ -22,6 +29,10 @@ class Tests(unittest.TestCase):
         relation_handler.organize_bots_to_minimize_searching(passive_data)
         condition_present = relation_handler.condition_present_in_passive_data("humidity",2,"soil_monitor")
         self.assertTrue(condition_present)
+
+        #other tests
+        self.relation_validation()
+        self.removing_all_relations()
 
     def generate_static_relation_config(self):
         mock_relation_config = {
@@ -70,6 +81,11 @@ class Tests(unittest.TestCase):
             relations = json.loads(data)
             return relations
         
+class AsyncTests(IsolatedAsyncioTestCase):
 
+    async def test(self):
+
+
+        
 if __name__ == "__main__":
     unittest.main()
