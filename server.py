@@ -43,7 +43,7 @@ class Server:
 
     def relation_is_valid(self,relation):
         try:
-            if "action" in relation and "device_name" in relation:
+            if "action" in relation and "device_name" in relation and "conditions" in relation and len(relation["conditions"])>0:
                 return True
             else:
                 return False

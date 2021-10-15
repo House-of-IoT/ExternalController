@@ -1,7 +1,9 @@
 
 from relation_manager import RelationManager
+from server import Server
 import json
 import unittest
+
 class Tests(unittest.TestCase):
 
     def tests(self):
@@ -24,6 +26,18 @@ class Tests(unittest.TestCase):
         }
         with open("relations.json","w") as File:
             File.write(json.dumps(mock_relation_config))
+
+    def relation_validation(self):
+        server = Server(self,[])
+        good_test_relation =  {"device_name":"water_valve", "action":"open", "conditions":[{"device_name":"soil_monitor", "humidity":2}]}
+        bad_test_relation =  {"device_name":"water_valve", "action":"open"}
+
+        good_relation_is_valid = server.relation_is_valid(good_test_relation)
+        bad_relation_is_valid = server.relation_is_valid(bad_test_relation)
+
+        self.assertTrue(good_relation_is_valid)
+        self.assertFalse(bad_relation_is_valid)
+        
 
 if __name__ == "__main__":
     unittest.main()
