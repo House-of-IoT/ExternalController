@@ -1,5 +1,5 @@
 # ExternalController
-A service that controlls devices in relation to each other. Used to trigger device's actions based on the set conditions of other device's data.
+A service that controlls devices in relation to each other. Used to trigger device's actions based on  other device's data.
 
 # When to use external controller?
  
