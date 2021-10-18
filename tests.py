@@ -14,7 +14,7 @@ class MockRelationManager:
 class MockWebsocket:
     async def recv():
         pass
-    async def send(data):
+    async def send(self,data):
         pass
 
 class Tests(unittest.TestCase):
@@ -22,7 +22,7 @@ class Tests(unittest.TestCase):
     def tests(self):
         #check that relations are being picked up from the config file
         self.generate_static_relation_config()
-        relation_handler = RelationManager()
+        relation_handler = RelationManager(self)
         self.assertEqual(len(relation_handler.relations),1)
 
         #check passive_data logic
@@ -73,8 +73,8 @@ class Tests(unittest.TestCase):
         server.remove_all_relations()
         
         #check that the relation is deleted 
-        relations = self.gather_relations_from_config()
-        self.assertEqual(len(relations),0)
+        relations_data = self.gather_relations_from_config()
+        self.assertEqual(len(relations_data["relations"]),0)
 
     def gather_relations_from_config(self):
         with open("relations.json","r") as File:
@@ -85,17 +85,19 @@ class Tests(unittest.TestCase):
 class AsyncTests(IsolatedAsyncioTestCase):
 
     async def test(self):
-        self.last_executed_relation()
+        await self.last_executed_relation()
     
     def overwrite_relation_config(self,data):
         with open("relations.json","w") as File:
             File.write(json.dumps({"relations" : data}))
 
     async def last_executed_relation(self):
-        mock_passive_data = json.dumps({"bots" : [{"device_name":"soil_monitor", "active_status":True, "humidity":2}]})
+        self.starting_number = 0
+        self.mock_passive_data = json.dumps({"bots" : [{"device_name":"soil_monitor", "active_status":True, "humidity":2}]})
 
+        self.temp_relational_config = [{"device_name":"water_valve", "action":"open", "conditions":[{"device_name":"soil_monitor", "humidity":2}]}]
         #making sure the config file is setup correctly
-        self.overwrite_relation_config([{"device_name":"water_valve", "action":"open", "conditions":[{"device_name":"soil_monitor", "humidity":2}]}])
+        self.overwrite_relation_config(self.temp_relational_config)
 
         #server(required to be in the parent of relation_manager)
         self.server = Server(self,[])
@@ -106,29 +108,23 @@ class AsyncTests(IsolatedAsyncioTestCase):
         #websocket(required to be in the parent of relation_manager)
         self.websocket = MockWebsocket()
         
-        #passing mock passive data to simulate condition checking
-        await self.relation_manager.check_passive_data_for_matching_conditions_and_execute_actions(mock_passive_data)
-        
         #check side effects(server should be mutated by the relation_manager)
-        self.assertEqual(len(self.server.last_executed_relational_actions),1)
-        await self.relation_manager.check_passive_data_for_matching_conditions_and_execute_actions(mock_passive_data)
+        await self.check_queue_size_after_execution_simulation(1)
 
         #continue checking side effects and fill up the queue to test overwritting
-        self.assertEqual(len(self.server.last_executed_relational_actions),2)
-        await self.relation_manager.check_passive_data_for_matching_conditions_and_execute_actions(mock_passive_data)
-        self.assertEqual(len(self.server.last_executed_relational_actions),3)
-        await self.relation_manager.check_passive_data_for_matching_conditions_and_execute_actions(mock_passive_data)
-        self.assertEqual(len(self.server.last_executed_relational_actions),4)
-        await self.relation_manager.check_passive_data_for_matching_conditions_and_execute_actions(mock_passive_data)
-        self.assertEqual(len(self.server.last_executed_relational_actions),5)
+        await self.check_queue_size_after_execution_simulation(2)
+        await self.check_queue_size_after_execution_simulation(3)
+        await self.check_queue_size_after_execution_simulation(4)
+        await self.check_queue_size_after_execution_simulation(5)
 
-        queue_in_list_form = list(self.server.last_executed_relational_actions)
+        queue_in_list_form = list(self.server.last_executed_relational_actions.queue)
 
         #make sure the oldest  item is always getting overwritten. We only keep record of the newest executed relations
         oldest_executed_relation = queue_in_list_form[0]
+        print(queue_in_list_form)
         
-        await self.relation_manager.check_passive_data_for_matching_conditions_and_execute_actions(mock_passive_data)
-        self.assertEqual(len(self.server.last_executed_relational_actions),5)
+        await self.relation_manager.check_passive_data_for_matching_conditions_and_execute_actions(self.mock_passive_data)
+        self.assertEqual(self.server.last_executed_relational_actions.qsize(),5)
 
         second_capture_of_oldest_executed_relation = self.server.last_executed_relational_actions.get()
 
@@ -137,8 +133,20 @@ class AsyncTests(IsolatedAsyncioTestCase):
         self.assertFalse(oldest_executed_relation.relation["action"] == second_capture_of_oldest_executed_relation.relation["action"]) 
         self.assertFalse(oldest_executed_relation.relation["device_name"] == second_capture_of_oldest_executed_relation.relation["device_name"]) 
 
-        self.assertEqual(self.server.last_executed_relational_actions.qsize ,5)
+    def overwrite_relational_config_randomly(self):
+        self.temp_relational_config[0]["device_name"] = str(self.temp_relational_config[0]["device_name"]) + str(self.starting_number)
+        self.temp_relational_config[0]["action"] = str(self.temp_relational_config[0]["action"]) + str(self.starting_number)
+        self.starting_number += 1
+        with open("relations.json","w") as File:
+            File.write(json.dumps({"relations" : self.temp_relational_config}))
+        self.relation_manager.relations = self.relation_manager.get_relations()
 
+    async def check_queue_size_after_execution_simulation(self,num):
+        self.overwrite_relational_config_randomly()
+        await self.relation_manager.check_passive_data_for_matching_conditions_and_execute_actions(self.mock_passive_data)
+        self.assertEqual(self.server.last_executed_relational_actions.qsize(),num)
+   
+        
 
 if __name__ == "__main__":
     unittest.main()

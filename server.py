@@ -12,7 +12,7 @@ class Server:
         self.last_executed_relational_actions = queue.Queue(5)
         self.parent = parent
         self.devices = {}
-        self.config = gather_config("hoi_s_pw")
+        self.config = gather_config(file_name = "server_config.json",env_pw_name="hoi_s_pw")
 
     async def authenticate_client_after_connection(self,websocket,path):
         await websocket.send("password")
