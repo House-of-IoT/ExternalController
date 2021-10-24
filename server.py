@@ -36,17 +36,21 @@ class Server:
         while name in self.devices:
             message = await websocket.recv()
             message = json.loads(message)
+            client_is_authed = self.is_authed(message["password"])
 
-            if message["request"] == "add_relation" or message["request"] == "remove_relation":
+            if message["request"] == "add_relation" or message["request"] == "remove_relation" and client_is_authed:
                 await self.add_or_remove_relation(websocket,message["relation"],message["request"])
 
-            elif message["request"] == "remove_all_relations":
+            elif message["request"] == "remove_all_relations" and client_is_authed:
                 self.remove_all_relations()
                 await asyncio.wait_for(websocket.send("success"),10)
 
-            else:#viewing relations
+            elif message == "view_relations" and client_is_authed:#viewing relations
                 await self.send_last_execute_relations(websocket)
 
+            else:
+                await asyncio.wait_for(self.websocket.send("issue"),30)
+                
     def relation_is_valid(self,relation):
         try:
             if "action" in relation and "device_name" in relation and "conditions" in relation and len(relation["conditions"])>0:
@@ -58,8 +62,8 @@ class Server:
             return False
 
     async def add_or_remove_relation(self,websocket,relation,request):
-        #only add/remove relation if the relation is proven to be valid
-        if(self.relation_is_valid(relation)): 
+        #only add/remove relation if the relation is proven to be valid and 
+        if(self.relation_is_valid(relation) and ): 
             if request == "add_relation":
                 self.relations.append(relation)
                 self.update_other_relation_copies()
@@ -87,6 +91,7 @@ class Server:
     async def send_last_execute_relations(self,websocket):
         list_last_executed = list(self.last_executed_relational_actions)
         json_list_last_executed = json.dumps(list_last_executed)
+        status_and_list = {"status":"success", }
         await asyncio.wait_for(websocket.send(json_list_last_executed))
 
     def find_and_remove_relation(self,target_relation):
@@ -99,3 +104,9 @@ class Server:
     def remove_all_relations(self):
         with open("relations.json","w") as File:
             File.write(json.dumps({"relations":[]}))
+
+    def is_authed(self, password_response):
+        if password_response == self.config["password"]:
+            return True
+        else:
+            return False
