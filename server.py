@@ -34,9 +34,10 @@ class Server:
     async def main_loop(self,websocket,name):
         while name in self.devices:
             message = await websocket.recv()
-            if message == "add_relation" or message == "remove_relation":
-                await self.gather_relation_and_add(websocket)
-            elif message == "remove_all_relations":
+            message = json.loads(message)
+            if message["request"] == "add_relation" or message["request"] == "remove_relation":
+                await self.gather_relation_and_add(websocket,message["relation"],message["request"])
+            elif message["request"] == "remove_all_relations":
                 self.remove_all_relations()
             else:#viewing relations
                 await self.send_last_execute_relations(websocket)
@@ -51,15 +52,15 @@ class Server:
             print(e)
             return False
 
-    async def gather_relation_and_add(self,websocket):
-        relation = await asyncio.wait_for(websocket.recv(),15)
-        relation = json.loads(relation)
-        
+    async def gather_relation_and_add(self,websocket,relation,request):
         #only add relation if the relation is proven to be valid
         if(self.relation_is_valid(relation)): 
-            self.relations.append(relation)
-            self.update_other_relation_copies()
-            await asyncio.wait_for(websocket.send("success"),10)
+            if request == "add_relation":
+                self.relations.append(relation)
+                self.update_other_relation_copies()
+                await asyncio.wait_for(websocket.send("success"),10)
+            else:
+                del self.relations[]
         else:
             await asyncio.wait_for(websocket.send("issue"),10)
 
@@ -82,6 +83,12 @@ class Server:
         list_last_executed = list(self.last_executed_relational_actions)
         json_list_last_executed = json.dumps(list_last_executed)
         await asyncio.wait_for(websocket.send(json_list_last_executed))
+
+    def find_and_remove_relation(self,target_relation):
+        for relation in self.relations:
+            #there can only be one relation with a unique action/device name.
+            if relation["action"] == target_relation["action"] and relation["device_name"] == target_relation["device_name"]:
+               self.relations.remove(relation)
 
     def remove_all_relations(self):
         with open("relations.json","w") as File:
