@@ -19,7 +19,8 @@ class Server:
         gathered_password = await asyncio.wait_for(websocket.recv(),30)
         await websocket.send("name")
         gathered_name = await asyncio.wait_for(websocket.recv(),30)
-        if  self.is_successfully_authenticated(gathered_name,gathered_password):
+
+        if self.is_successfully_authenticated(gathered_name,gathered_password):
             self.devices[gathered_name] = websocket
             await self.main_loop(websocket,name)
         else:
@@ -35,10 +36,14 @@ class Server:
         while name in self.devices:
             message = await websocket.recv()
             message = json.loads(message)
+
             if message["request"] == "add_relation" or message["request"] == "remove_relation":
-                await self.gather_relation_and_add(websocket,message["relation"],message["request"])
+                await self.add_or_remove_relation(websocket,message["relation"],message["request"])
+
             elif message["request"] == "remove_all_relations":
                 self.remove_all_relations()
+                await asyncio.wait_for(websocket.send("success"),10)
+
             else:#viewing relations
                 await self.send_last_execute_relations(websocket)
 
@@ -52,15 +57,15 @@ class Server:
             print(e)
             return False
 
-    async def gather_relation_and_add(self,websocket,relation,request):
-        #only add relation if the relation is proven to be valid
+    async def add_or_remove_relation(self,websocket,relation,request):
+        #only add/remove relation if the relation is proven to be valid
         if(self.relation_is_valid(relation)): 
             if request == "add_relation":
                 self.relations.append(relation)
                 self.update_other_relation_copies()
-                await asyncio.wait_for(websocket.send("success"),10)
             else:
-                del self.relations[]
+                self.find_and_remove_relation(relation)
+            await asyncio.wait_for(websocket.send("success"),10)
         else:
             await asyncio.wait_for(websocket.send("issue"),10)
 
@@ -89,6 +94,7 @@ class Server:
             #there can only be one relation with a unique action/device name.
             if relation["action"] == target_relation["action"] and relation["device_name"] == target_relation["device_name"]:
                self.relations.remove(relation)
+               break
 
     def remove_all_relations(self):
         with open("relations.json","w") as File:
