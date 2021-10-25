@@ -45,9 +45,12 @@ class Server:
                 self.remove_all_relations()
                 await asyncio.wait_for(websocket.send("success"),10)
 
-            elif message == "view_relations" and client_is_authed:#viewing relations
+            elif message == "view_last_relations" and client_is_authed:#viewing relations
                 await self.send_last_execute_relations(websocket)
-
+            
+            elif message == "view_relations" and client_is_authed:
+                await self.send_relations(websocket)
+                
             else:
                 await asyncio.wait_for(self.websocket.send("issue"),30)
                 
@@ -63,12 +66,13 @@ class Server:
 
     async def add_or_remove_relation(self,websocket,relation,request):
         #only add/remove relation if the relation is proven to be valid and 
-        if(self.relation_is_valid(relation) and ): 
+        if(self.relation_is_valid(relation) ): 
             if request == "add_relation":
                 self.relations.append(relation)
                 self.update_other_relation_copies()
             else:
                 self.find_and_remove_relation(relation)
+                self.update_other_relation_copies(relation)
             await asyncio.wait_for(websocket.send("success"),10)
         else:
             await asyncio.wait_for(websocket.send("issue"),10)
@@ -91,8 +95,13 @@ class Server:
     async def send_last_execute_relations(self,websocket):
         list_last_executed = list(self.last_executed_relational_actions)
         json_list_last_executed = json.dumps(list_last_executed)
-        status_and_list = {"status":"success", }
-        await asyncio.wait_for(websocket.send(json_list_last_executed))
+        status_and_list = {"status":"success","type":"last_executed" ,"data":json_list_last_executed}
+        await asyncio.wait_for(websocket.send(json.dumps(status_and_list)),20)
+
+    async def send_relations(self,websocket):
+        current_relations = json.dumps(self.relations)
+        current_relations_and_status = {"status":"success","type":"current_relations","data":current_relations}
+        await asyncio.wait_for(websocket.send(json.dumps(current_relations_and_status)),20)
 
     def find_and_remove_relation(self,target_relation):
         for relation in self.relations:
