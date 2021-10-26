@@ -45,10 +45,10 @@ class Server:
                 self.remove_all_relations()
                 await asyncio.wait_for(websocket.send("success"),10)
 
-            elif message == "view_last_relations" and client_is_authed:#viewing relations
+            elif message["request"] == "view_last_relations" and client_is_authed:#viewing relations
                 await self.send_last_execute_relations(websocket)
             
-            elif message == "view_relations" and client_is_authed:
+            elif message["request"] == "view_relations" and client_is_authed:
                 await self.send_relations(websocket)
                 
             else:
