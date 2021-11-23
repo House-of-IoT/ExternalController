@@ -1,31 +1,32 @@
-import hoi_client
+
+from general_server_client import GeneralServerClient
+from server import Server
 from config import gather_config
-import asyncio
 from relation_manager import RelationManager
+import websockets
+import asyncio
 
 class Main:
     def __init__(self):
         self.config = gather_config()
-        self.client = hoi_client.Client()
+        self.general_server_client = GeneralServerClient()
         self.relation_manager = RelationManager(self)
+        self.server = Server(self,self.relation_manager.relations)
 
-    async def main(self):
-        await self.establish_websocket_connection()      
-        response = await self.client.send_connection_credentials(self.websocket)
-        if response == "success":
-            tasks = [self.gather_data_and_analyze()]
-            await self.client.main(self.websocket,tasks)
-        else:
-            print("authentication failed")
+    def start(self):
+        loop = asyncio.get_event_loop()
+        loop.run_until_complete(self.general_server_client.main())
+        loop.run_until_complete(
+            websockets.serve(
+                self.server.authenticate_client_after_connection,
+                self.config.host,
+                self.config.port,
+                ping_interval=None))
+        
+        
+        loop.run_forever()
 
-    async def establish_websocket_connection(self):
-        self.websocket = self.client.establish_connection()
 
-    async def gather_data_and_analyze(self):
-        try:
-            await asyncio.wait_for(self.websocket.send("passive_data"),20)
-            message = await asyncio.wait_for(self.websocket.recv(),10)
-            await self.relation_manager.check_passive_data_for_matching_conditions_and_execute_actions(message)
-            
-        except Exception as e:
-           pass
+if __name__ == "__main__":
+    main = Main()
+    main.start()

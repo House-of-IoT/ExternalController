@@ -53,6 +53,7 @@ class Server:
                 
             else:
                 await asyncio.wait_for(self.websocket.send("issue"),30)
+            await asyncio.sleep(3)
                 
     def relation_is_valid(self,relation):
         try:
