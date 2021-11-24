@@ -1,5 +1,6 @@
 import json
-from typing import KeysView
+import websockets
+import queue
 
 """
 To Change?
@@ -64,7 +65,8 @@ class RelationManager:
             return False
     
     async def execute_action_if_conditions_were_satisfied(self,action,bot_name):
-        await self.parent.websocket.send("bot_control")
-        await self.parent.websocket.send(action)
-        await self.parent.websocket.send(bot_name)
-        #consider api for recent external actions
+            await self.parent.websocket.send("bot_control")
+            await self.parent.websocket.send(action)
+            await self.parent.websocket.send(bot_name)
+            response = await self.parent.websocket.recv()
+
