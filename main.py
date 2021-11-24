@@ -25,7 +25,6 @@ class Main:
                 ping_interval=None))
         loop.run_forever()
 
-
 if __name__ == "__main__":
     main = Main()
     main.start()
