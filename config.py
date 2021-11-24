@@ -2,6 +2,9 @@ import json
 import hoi_client
 import os
 
+"""
+Set config for the server or the GeneralServer
+"""
 def set_config(file_name = None):
     data_dict = {}
     data_dict["host"] = input('host:\n')
@@ -16,6 +19,10 @@ def set_config(file_name = None):
         data_to_write = json.dumps(data_dict)
         File.write(data_to_write)
 
+"""
+Gather config for either the server hosting or 
+the GeneralServer
+"""
 def gather_config(file_name = None, env_pw_name = "hoi_mdc_pw"):
 
     if file_name == None:
@@ -28,7 +35,12 @@ def gather_config(file_name = None, env_pw_name = "hoi_mdc_pw"):
         if env_pw_name != "hoi_mdc_pw":
             return data
         else:
-            config = hoi_client.Config(data["port"],data["host"],password,data["name"],data["type"])
+            config = hoi_client.Config(
+                data["port"],
+                data["host"],
+                password,
+                data["name"],
+                data["type"])
             return config
        
 if __name__ == "__main__":

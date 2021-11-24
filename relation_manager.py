@@ -1,6 +1,7 @@
 import json
 import websockets
 import queue
+import os
 
 """
 To Change?
@@ -31,8 +32,7 @@ class RelationManager:
                             self.all_conditions_satisfied = False
 
             #if all of the conditions were satisfied               
-            await self.execute_action_if_conditions_were_satisfied(relation["action"],relation["device_name"])
-            self.parent.server.add_or_replace_last_executed_relation(relation)
+            await self.execute_action_if_conditions_were_satisfied(relation)
                 
     """
     Background: We recieve a list of objects from the server that are the bots.
@@ -64,9 +64,31 @@ class RelationManager:
         else:
             return False
     
-    async def execute_action_if_conditions_were_satisfied(self,action,bot_name):
+    async def execute_action_if_conditions_were_satisfied(self,relation):
+        try:
             await self.parent.websocket.send("bot_control")
-            await self.parent.websocket.send(action)
-            await self.parent.websocket.send(bot_name)
+            await self.parent.websocket.send(relation["action"])
+            await self.parent.websocket.send(relation["device_name"])
             response = await self.parent.websocket.recv()
+            successfully_authed = await self.authenticate_if_needed(response)
 
+            if successfully_authed:
+                self.parent.server.add_or_replace_last_executed_relation(relation)
+            else:
+                print("Failed action execution due to failed auth")
+        except Exception as e:
+            print(e)
+             
+    async def authenticate_if_needed(self,response):
+        response_dict = json.loads(response)
+        if response_dict["status"] == "needs-admin-auth":
+            admin_password = os.environ.get("hoi_exc_a_pw")
+            await self.parent.websocket.send(admin_password)
+            auth_response = await self.parent.websocket.recv()
+            auth_response_dict = json.loads(auth_response)
+            if auth_response_dict["status"] == "success":
+                return True
+        elif response_dict["status"] == "success":
+            return True
+        else:
+            return False   

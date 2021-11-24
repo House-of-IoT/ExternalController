@@ -60,7 +60,10 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
                     break
                 elif message == "passive_data":
                     await websocket.send(json.dumps(
-                        {"data":"","alert_status":"alert_present", "message":"test for house of iot network #1", "test_field":True})) #basic data
+                        {"data":"",
+                        "alert_status":"alert_present", 
+                        "message":"test for house of iot network #1", 
+                        "test_field":True})) #basic data
                 elif message == "test_trigger":
                     await websocket.send("success")
                 else:

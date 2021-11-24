@@ -7,7 +7,6 @@ import asyncio
 
 class Main:
     def __init__(self):
-        self.good_to_execute = False
         self.config = gather_config()
         self.general_server_client = GeneralServerClient()
         self.relation_manager = RelationManager(self)
