@@ -23,8 +23,6 @@ class Main:
                 self.config.host,
                 self.config.port,
                 ping_interval=None))
-        
-        
         loop.run_forever()
 
 
