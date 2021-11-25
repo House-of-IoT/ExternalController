@@ -39,7 +39,9 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
     async def remove_relation(self,websocket,relation):
         response = await self.add_or_remove_relation(websocket,relation,"remove_relation")
         self.assertEqual(response,"success")
-
+    
+    async def gather_current_relations(self,websocket):
+        pass
 
     async def add_or_remove_relation(self,websocket,relation,op_code):
         request = {"request":op_code,"password":"", "relation":relation}
