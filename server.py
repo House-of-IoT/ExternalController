@@ -107,19 +107,17 @@ class Server:
 
     async def send_last_execute_relations(self,websocket):
         list_last_executed = list(self.last_executed_relational_actions)
-        json_list_last_executed = json.dumps(list_last_executed)
         status_and_list = {
             "status":"success",
             "type":"last_executed" ,
-            "data":json_list_last_executed}
+            "relations":list_last_executed}
         await asyncio.wait_for(websocket.send(json.dumps(status_and_list)),20)
 
     async def send_relations(self,websocket):
-        current_relations = json.dumps(self.relations)
         current_relations_and_status = {
                 "status":"success",
                 "type":"current_relations",
-                "data":current_relations}
+                "relations":self.relations}
         await asyncio.wait_for(websocket.send(json.dumps(current_relations_and_status)),20)
 
     def find_and_remove_relation(self,target_relation):
