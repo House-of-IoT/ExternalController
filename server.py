@@ -128,9 +128,9 @@ class Server:
                break
 
     def convert_last_executed_into_dict_list(self):
-        new_queue_copy = list(self.last_executed_relational_actions)
+        queue_to_list = list(self.last_executed_relational_actions)
         executed_dict_list = []
-        for last_executed in new_queue_copy:
+        for last_executed in queue_to_list:
             executed_dict_list.append({
                 "relation" : last_executed.relation,
                 "datetime" : str(last_executed.time_data)
