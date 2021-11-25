@@ -17,7 +17,7 @@ class RelationConfig:
                 device_name_for_condition = input("what is the device for this condition?:")
                 conditions.append({"device name":device_name_for_condition, parameter_name:parameter_value})
                 more_conditions = input("would you like to setup more conditions?[y/n]:")
-                if more_conditions != "y" and more_relations != "Y":
+                if more_conditions != "y" and more_conditions != "Y":
                     break
             relations.append({"device_name":device_name, "action":action, "conditions":conditions})
             more_relations  = input("Would you like to continue creating more relations?[y/n]:")

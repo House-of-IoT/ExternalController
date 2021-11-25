@@ -3,6 +3,13 @@ import websockets
 import unittest
 import json
 
+"""
+
+The below tests the functionality of the ExternalMonitor
+and further verifies the correctness by checking the GeneralServer
+instance that the ExternalMonitor is connected to.
+"""
+
 class AsyncTests(unittest.IsolatedAsyncioTestCase):
     
     async def connect_to_general_server(self):
@@ -37,7 +44,6 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
         await asyncio.sleep(10)
         await self.remove_relation(external_monitor_websocket,relation)
         await self.check_recent_executed_relations(external_monitor_websocket,relation)
-
 
     async def add_relation(self,websocket,relation):
         response = await self.add_or_remove_relation(websocket,relation,"add_relation")
@@ -90,6 +96,10 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
                 gathered_value = current_gathered_condition[key]
                 self.assertEqual(original_value,gathered_value)
 
+    async def check_action_history_after_execution(self,websocket):
+        data_dict_response = await self.gather_one_send_request_response("executed_actions",websocket)
+        data_dict_target_value = json.loads(data_dict_response["target_value"])
+        
     async def add_or_remove_relation(self,websocket,relation,op_code):
         request = {"request":op_code,"password":"", "relation":relation}
         await websocket.send(json.dumps(request))
@@ -99,3 +109,9 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
     def name_and_type(self):
         data = {"name":"test_non_bot", "type":"non-bot"}
         return json.dumps(data)
+
+    async def gather_one_send_request_response(self,request,websocket):
+        await websocket.send(request)
+        response = await websocket.recv()
+        data_dict = json.loads(response)
+        return data_dict
