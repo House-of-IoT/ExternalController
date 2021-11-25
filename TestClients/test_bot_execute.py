@@ -4,24 +4,6 @@ import json
 import unittest
 
 '''
-Note: This test bot client 
-is really just the second part to
-the test_web_client , this bot only
-truly tests the responses to authentication
-since each bot is unique it is and doesn't really 
-recv data other than requests from the web_client (that vary), there is 
-hardly anything to assert
-'''
-
-'''
-The following test assumes
-1.Your server follows the correct protocol
-2.There are no bots connect with the name of 'test'
-3.There will be no networking interruptions
-4.Your server is hosted locally on port 50223
-'''
-
-'''
 protocol
 1.Send password for general server
 2.Send name and type(json serialized)
