@@ -7,7 +7,7 @@ A service that controlls devices in relation to each other. Used to trigger devi
  select amount of devices that have direct relationship in action execution. 
  The external controller is a implemenetation of the concept [ChainControlling](https://github.com/House-of-IoT/HOI-GeneralServer/blob/master/Docs/ChainControlling.MD).
  
- A good usage fore the external controller would be a smart irrigation system
+ A good usage for the external controller would be a smart irrigation system
  or basically when one device needs to trigger an action of another device based on its own data.
  
  # Example
