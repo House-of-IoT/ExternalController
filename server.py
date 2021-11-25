@@ -4,12 +4,12 @@ from os import name
 from config import gather_config
 from last_executed_relation import LastExecuted
 from datetime import datetime
-import queue
+from collections import deque
 
 class Server:
     def __init__(self,parent,relations):
         self.relations = relations
-        self.last_executed_relational_actions = queue.Queue(5)
+        self.last_executed_relational_actions = deque()
         self.parent = parent
         self.devices = {}
         self.config = gather_config(
@@ -97,16 +97,16 @@ class Server:
         
     def add_or_replace_last_executed_relation(self,relation):
         last_executed = LastExecuted(relation,datetime.utcnow())
-        if self.last_executed_relational_actions.qsize() == 5:
+        if len(self.last_executed_relational_actions) == 5:
             #remove the oldest  from the queue and add the new one
-            self.last_executed_relational_actions.get()
-            self.last_executed_relational_actions.put(last_executed)
+            self.last_executed_relational_actions.popleft()
+            self.last_executed_relational_actions.append(last_executed)
 
         else:
-            self.last_executed_relational_actions.put(last_executed)
+            self.last_executed_relational_actions.append(last_executed)
 
     async def send_last_execute_relations(self,websocket):
-        list_last_executed = list(self.last_executed_relational_actions)
+        list_last_executed = self.convert_last_executed_into_dict_list()
         status_and_list = {
             "status":"success",
             "type":"last_executed" ,
@@ -126,6 +126,16 @@ class Server:
             if relation["action"] == target_relation["action"] and relation["device_name"] == target_relation["device_name"]:
                self.relations.remove(relation)
                break
+
+    def convert_last_executed_into_dict_list(self):
+        new_queue_copy = list(self.last_executed_relational_actions)
+        executed_dict_list = []
+        for last_executed in new_queue_copy:
+            executed_dict_list.append({
+                "relation" : last_executed.relation,
+                "datetime" : str(last_executed.time_data)
+            })
+        return executed_dict_list
 
     def remove_all_relations(self):
         with open("relations.json","w") as File:
