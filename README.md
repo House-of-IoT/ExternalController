@@ -1,7 +1,7 @@
 # ExternalController
 A service that controlls devices in relation to each other. Used to trigger device's actions based on  other device's data.
 
-# When to use external controller?
+# When to use an instance of the external controller?
  
  You would setup an instance of the external controller when you have a 
  select amount of devices that have direct relationship in action execution. 
