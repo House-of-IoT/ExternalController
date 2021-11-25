@@ -8,10 +8,27 @@ import json
 The below tests the functionality of the ExternalMonitor
 and further verifies the correctness by checking the GeneralServer
 instance that the ExternalMonitor is connected to.
+
+To learn about how to properly run the tests please check the Docs.
 """
 
 class AsyncTests(unittest.IsolatedAsyncioTestCase):
     
+    async def test(self):
+        relation = {
+            "device_name":"test_bot_execute", 
+            "action":"test_trigger", 
+            "conditions":[
+                {"device_name":"test_bot_read", 
+                "test_field":True}]}
+        external_monitor_websocket = await self.connect_to_external_monitor()
+        general_server_websocket = await self.connect_to_general_server()
+        await self.add_relation(external_monitor_websocket,relation)
+        await asyncio.sleep(10) #wait on the action to execute
+        await self.remove_relation(external_monitor_websocket,relation)
+        await self.check_recent_executed_relations(external_monitor_websocket,relation)
+        await self. check_action_history_after_execution(general_server_websocket)
+        
     async def connect_to_general_server(self):
         websocket = await websockets.connect(
             'ws://localhost:50223', ping_interval= None, max_size = 20000000)
@@ -29,21 +46,6 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
         await websocket.send(credentials)
         response = await websocket.recv()
         self.assertEqual(response,"success")
-        
-    async def test(self):
-        relation = {
-            "device_name":"test_bot_execute", 
-            "action":"test_trigger", 
-            "conditions":[
-                {"device_name":"test_bot_read", 
-                "test_field":True}]}
-        external_monitor_websocket = await self.connect_to_external_monitor()
-        general_server_websocket = await self.connect_to_general_server()
-        await self.add_relation(external_monitor_websocket,relation)
-        #wait on the action to execute
-        await asyncio.sleep(10)
-        await self.remove_relation(external_monitor_websocket,relation)
-        await self.check_recent_executed_relations(external_monitor_websocket,relation)
 
     async def add_relation(self,websocket,relation):
         response = await self.add_or_remove_relation(websocket,relation,"add_relation")
@@ -99,7 +101,12 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
     async def check_action_history_after_execution(self,websocket):
         data_dict_response = await self.gather_one_send_request_response("executed_actions",websocket)
         data_dict_target_value = json.loads(data_dict_response["target_value"])
-        
+        self.assertEqual(len(data_dict_target_value),1)
+        self.assertEqual(data_dict_target_value[0]["action"],"test_trigger")
+        self.assertEqual(data_dict_target_value[0]["executor"],"ExternalMonitor")
+        self.assertEqual(data_dict_target_value[0]["bot_type"],"test_bot")
+        self.assertEqual(data_dict_target_value[0]["bot_name"],"test_bot_execute")
+
     async def add_or_remove_relation(self,websocket,relation,op_code):
         request = {"request":op_code,"password":"", "relation":relation}
         await websocket.send(json.dumps(request))
