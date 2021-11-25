@@ -1,7 +1,7 @@
-from general_server_client import GeneralServerClient
-from server import Server
-from config import gather_config
-from relation_manager import RelationManager
+from Core.general_server_client import GeneralServerClient
+from Core.server import Server
+from Config.config import gather_config
+from Core.relation_manager import RelationManager
 import websockets
 import asyncio
 

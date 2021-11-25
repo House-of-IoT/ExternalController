@@ -1,7 +1,7 @@
 import asyncio
 import json
 from os import name
-from config import gather_config
+from Config.config import gather_config
 from last_executed_relation import LastExecuted
 from datetime import datetime
 from collections import deque

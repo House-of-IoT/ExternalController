@@ -24,6 +24,7 @@ class RelationConfig:
             if more_relations != "y" and more_relations != "Y":
                 break
         RelationConfig.write_relations(relations)
+        
     @staticmethod
     def write_relations(relations):
         data_dict = {'relations': relations}
