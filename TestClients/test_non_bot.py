@@ -1,3 +1,4 @@
+import asyncio
 import websockets
 import unittest
 import json
@@ -31,6 +32,12 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
                 "test_field":True}]}
         external_monitor_websocket = await self.connect_to_external_monitor()
         general_server_websocket = await self.connect_to_general_server()
+        await self.add_relation(external_monitor_websocket,relation)
+        #wait on the action to execute
+        await asyncio.sleep(10)
+        await self.remove_relation(external_monitor_websocket,relation)
+        await self.check_recent_executed_relations(external_monitor_websocket,relation)
+
 
     async def add_relation(self,websocket,relation):
         response = await self.add_or_remove_relation(websocket,relation,"add_relation")
@@ -49,6 +56,9 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
     async def check_recent_executed_relations(self,websocket,relation):
         response_dict = await self.execute_basic_request_reponse(websocket,"view_last_relations")
         self.assertEqual(response_dict["type"],"last_executed")
+        self.assertEqual(len(response_dict["relations"]),1)
+        self.assertTrue("datetime" in response_dict["relations"][0])
+        self.compare_relations(relation,response_dict["relations"][0]["relation"])
     
     #make request with generic data(password and opcode) and gathers repsonse
     async def execute_basic_request_reponse(self,websocket,opcode):
@@ -59,7 +69,7 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(response_dict["status"],"success")
         return response_dict
 
-    async def compare_relations(self,original_relation,gathered_relation):
+    def compare_relations(self,original_relation,gathered_relation):
         original_conditions = original_relation["conditions"]
         gathered_conditions = gathered_relation["conditions"]
         self.assertEqual(original_relation["device_name"], gathered_relation["device_name"])
