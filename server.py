@@ -25,9 +25,10 @@ class Server:
 
             if self.is_successfully_authenticated(gathered_name,gathered_password):
                 self.devices[gathered_name] = websocket
+                await asyncio.wait_for(websocket.send("success"),20)
                 await self.main_loop(websocket,name)
             else:
-                await asyncio.wait_for(websocket.send("issue"),10)
+                await asyncio.wait_for(websocket.send("issue"),20)
         except Exception as e:
             print(e)
     
@@ -43,19 +44,18 @@ class Server:
             message = json.loads(message)
             client_is_authed = self.is_authed(message["password"])
 
-            if message["request"] == "add_relation" or message["request"] == "remove_relation" and client_is_authed:
-                await self.add_or_remove_relation(websocket,message["relation"],message["request"])
-
-            elif message["request"] == "remove_all_relations" and client_is_authed:
+            if client_is_authed == False:
+                await asyncio.wait_for(self.websocket.send("issue"),30)
+            elif message["request"] == "add_relation" or message["request"] == "remove_relation":
+                await self.add_or_remove_relation(
+                    websocket,message["relation"],message["request"])
+            elif message["request"] == "remove_all_relations":
                 self.remove_all_relations()
                 await asyncio.wait_for(websocket.send("success"),10)
-
-            elif message["request"] == "view_last_relations" and client_is_authed:#viewing relations
+            elif message["request"] == "view_last_relations":
                 await self.send_last_execute_relations(websocket)
-            
-            elif message["request"] == "view_relations" and client_is_authed:
+            elif message["request"] == "view_relations":
                 await self.send_relations(websocket)
-                
             else:
                 await asyncio.wait_for(self.websocket.send("issue"),30)
             await asyncio.sleep(3)
