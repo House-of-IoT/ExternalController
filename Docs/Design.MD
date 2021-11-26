@@ -38,11 +38,11 @@ On top of the 5 second delay:
 
   - Sprinkler system relation with a `sprinkler_bot` and a `light_monitor_bot`.
     - You would like to turn off the sprinkler when it gets too dark outside.
-    - Not time sensitive because the sprinkler could be 5+ seconds late turning off with no damage to the grass at all.
+    - Not time sensitive because the sprinkler could be 5 seconds late turning off with no damage to the grass at all.
     
   - Smart Irrigation system with a `water_pump` and a `soil_moisture_sensor`.
     - You would like to turn on the water pump to supply water when the soil moisture sensor senses small amounts of moisture.
-    - Not time sensitive because the plants aren't going to die with a lack of moisture for 5+ seconds.
+    - Not time sensitive because the plants aren't going to die with a lack of moisture for 5 seconds.
 
  Bad system examples:
   - Smart water tank regulator with a `tank_level_monitor` and a `empty_solenoid_valve`.
