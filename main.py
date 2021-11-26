@@ -8,19 +8,22 @@ import asyncio
 class Main:
     def __init__(self):
         self.config = gather_config()
-        self.general_server_client = GeneralServerClient()
+        self.general_server_client = GeneralServerClient(self,self.config)
         self.relation_manager = RelationManager(self)
         self.server = Server(self,self.relation_manager.relations)
 
     def start(self):
+        print(self.server.config["host"])
+        print(self.server.config["port"])
         loop = asyncio.get_event_loop()
-        loop.run_until_complete(self.general_server_client.main())
         loop.run_until_complete(
             websockets.serve(
                 self.server.authenticate_client_after_connection,
-                self.config.host,
-                self.config.port,
+                self.server.config["host"],
+                self.server.config["port"],
                 ping_interval=None))
+        loop.run_until_complete(self.general_server_client.main())
+  
         loop.run_forever()
 
 if __name__ == "__main__":

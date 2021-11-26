@@ -1,6 +1,7 @@
 import json
 import os
-
+import traceback
+import asyncio
 """
 To Change?
 We are storing the device name twice after organization of bots
@@ -63,26 +64,27 @@ class RelationManager:
             return False
     
     async def execute_action_if_conditions_were_satisfied(self,relation):
-        try:
-            await self.parent.websocket.send("bot_control")
-            await self.parent.websocket.send(relation["action"])
-            await self.parent.websocket.send(relation["device_name"])
-            response = await self.parent.websocket.recv()
-            successfully_authed = await self.authenticate_if_needed(response)
+        if self.all_conditions_satisfied == True:
+            try:
+                await self.parent.general_server_client.websocket.send("bot_control")
+                await self.parent.general_server_client.websocket.send(relation["action"])
+                await self.parent.general_server_client.websocket.send(relation["device_name"])
+                response = await self.parent.general_server_client.websocket.recv()
+                successfully_authed = await self.authenticate_if_needed(response)
 
-            if successfully_authed:
-                self.parent.server.add_or_replace_last_executed_relation(relation)
-            else:
-                print("Failed action execution due to failed auth")
-        except Exception as e:
-            print(e)
+                if successfully_authed:
+                    self.parent.server.add_or_replace_last_executed_relation(relation)
+                else:
+                    print("Failed action execution due to failed auth")
+            except Exception as e:
+                traceback.print_exc()
              
     async def authenticate_if_needed(self,response):
         response_dict = json.loads(response)
         if response_dict["status"] == "needs-admin-auth":
             admin_password = os.environ.get("hoi_exc_a_pw")
-            await self.parent.websocket.send(admin_password)
-            auth_response = await self.parent.websocket.recv()
+            await self.parent.general_server_client.websocket.send(admin_password)
+            auth_response = await self.parent.general_server_client.websocket.recv()
             auth_response_dict = json.loads(auth_response)
             if auth_response_dict["status"] == "success":
                 return True

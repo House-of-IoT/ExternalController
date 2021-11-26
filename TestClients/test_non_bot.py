@@ -27,7 +27,7 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
         await asyncio.sleep(10) #wait on the action to execute
         await self.remove_relation(external_monitor_websocket,relation)
         await self.check_recent_executed_relations(external_monitor_websocket,relation)
-        await self. check_action_history_after_execution(general_server_websocket)
+        await self.check_action_history_after_execution(general_server_websocket)
         
     async def connect_to_general_server(self):
         websocket = await websockets.connect(
@@ -41,18 +41,20 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
 
     async def connect_to_external_monitor(self):
         websocket = await websockets.connect(
-            'ws://localhost:50224',ping_interval= None, max_size = 20000000)
+            'ws://127.0.0.1:50224',ping_interval= None, max_size = 20000000)
         credentials = json.dumps({"name":"test_non_bot", "password":""})
         await websocket.send(credentials)
         response = await websocket.recv()
         self.assertEqual(response,"success")
+        return websocket
 
     async def add_relation(self,websocket,relation):
         response = await self.add_or_remove_relation(websocket,relation,"add_relation")
         self.assertEqual(response,"success")
         response_dict = await self.execute_basic_request_reponse(websocket,"view_relations")
+        print(response_dict)
         self.assertEqual(response_dict["type"],"current_relations")
-        self.compare_relations(relation,response_dict["relation"])
+        self.compare_relations(relation,response_dict["relations"][0])
         
     async def remove_relation(self,websocket,relation):
         response = await self.add_or_remove_relation(websocket,relation,"remove_relation")
@@ -122,3 +124,6 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
         response = await websocket.recv()
         data_dict = json.loads(response)
         return data_dict
+
+if __name__ == "__main__":
+    unittest.main()

@@ -9,8 +9,9 @@ def set_config(file_name = None):
     data_dict = {}
     data_dict["host"] = input('host:\n')
     data_dict["port"] = int(input("port:\n"))
-    data_dict["name"] = input("name:\n")
-    data_dict["type"] = input("type")
+    if file_name == None:
+        data_dict["name"] = input("name:\n")
+        data_dict["type"] = input("type:")
 
     if file_name == None:
         file_name = "config.json"
@@ -31,6 +32,7 @@ def gather_config(file_name = None, env_pw_name = "hoi_mdc_pw"):
     with open(file_name , "r") as File:
         data = json.loads(File.read())
         password = os.environ.get(env_pw_name)
+        print(password)
         data["password"] = password
         if env_pw_name != "hoi_mdc_pw":
             return data

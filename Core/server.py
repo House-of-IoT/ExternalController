@@ -2,9 +2,10 @@ import asyncio
 import json
 from os import name
 from Config.config import gather_config
-from last_executed_relation import LastExecuted
+from .last_executed_relation import LastExecuted
 from datetime import datetime
 from collections import deque
+import traceback
 
 class Server:
     def __init__(self,parent,relations):
@@ -18,7 +19,9 @@ class Server:
 
     async def authenticate_client_after_connection(self,websocket,path):
         try:
+            
             credentials = await asyncio.wait_for(websocket.recv(),30)
+            print(credentials)
             credentials_dict = json.loads(credentials)
             gathered_password = credentials_dict["password"]
             gathered_name = credentials_dict["name"]
@@ -26,16 +29,19 @@ class Server:
             if self.is_successfully_authenticated(gathered_name,gathered_password):
                 self.devices[gathered_name] = websocket
                 await asyncio.wait_for(websocket.send("success"),20)
-                await self.main_loop(websocket,name)
+                loop = asyncio.get_event_loop()
+                await loop.create_task(self.main_loop(websocket,gathered_name))
             else:
                 await asyncio.wait_for(websocket.send("issue"),20)
         except Exception as e:
-            print(e)
+            traceback.print_exc()
     
     def is_successfully_authenticated(self,name,user_password):
         if user_password == self.config["password"] and name not in self.devices:
+            print("authed")
             return True
         else:
+            print("not authed")
             return False
 
     async def main_loop(self,websocket,name):
@@ -43,7 +49,7 @@ class Server:
             try:
                 await self.gather_and_route_request(websocket)
             except Exception as e:
-                print(e)
+                traceback.print_exc()
                 break
             await asyncio.sleep(3)
     
@@ -74,7 +80,7 @@ class Server:
             else:
                 return False
         except Exception as e:
-            print(e)
+            traceback.print_exc()
             return False
 
     async def add_or_remove_relation(self,websocket,relation,request):
@@ -85,7 +91,7 @@ class Server:
                 self.update_other_relation_copies()
             else:
                 self.find_and_remove_relation(relation)
-                self.update_other_relation_copies(relation)
+                self.update_other_relation_copies()
             await asyncio.wait_for(websocket.send("success"),10)
         else:
             await asyncio.wait_for(websocket.send("issue"),10)
@@ -93,7 +99,7 @@ class Server:
     def update_other_relation_copies(self):
         self.parent.relation_manager.relations = self.relations
         with open("relations.json","w") as File:
-            File.write(json.dumps(self.relations))
+            File.write(json.dumps({"relations":self.relations}))
         
     def add_or_replace_last_executed_relation(self,relation):
         last_executed = LastExecuted(relation,datetime.utcnow())

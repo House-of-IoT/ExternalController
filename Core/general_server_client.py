@@ -1,7 +1,7 @@
 import hoi_client
 import asyncio
 import websockets
-
+import traceback
 """
 Handles connection to the general server
 and directly calls the relation_manager's 
@@ -9,8 +9,8 @@ passive data checking methods.
 """
 
 class GeneralServerClient:
-    def __init__(self,parent):
-        self.client = hoi_client.Client()
+    def __init__(self,parent,config):
+        self.client = hoi_client.Client(config)
         self.parent = parent
 
     """
@@ -18,24 +18,25 @@ class GeneralServerClient:
     """
     async def main(self):
         while True:
+            await asyncio.sleep(5)
             try:
                 await self.establish_websocket_connection()      
                 response = await self.client.send_connection_credentials(self.websocket)
                 if response == "success":
                     loop = asyncio.get_event_loop()
-                    loop.run_until_complete(self.gather_data_and_analyze())
-                    break #no longer need to try to connect and authenticate
+                    await loop.create_task(self.gather_data_and_analyze())
                 else:
                     print("authentication failed")
             except Exception as e:
-                print(e)
-            await asyncio.sleep(5)
+                traceback.print_exc()
+            
 
     async def establish_websocket_connection(self):
-        self.websocket = self.client.establish_connection()
+        self.websocket = await self.client.establish_connection()
 
     async def gather_data_and_analyze(self):
         while True:
+            await asyncio.sleep(5)
             try:
                 await asyncio.wait_for(self.websocket.send("passive_data"),20)
                 message = await asyncio.wait_for(self.websocket.recv(),10)
@@ -43,5 +44,6 @@ class GeneralServerClient:
             except Exception as e:
                 if e is websockets.WebSocketException.ConnectionClosed:
                     #this has internal Exception handling.
+                    traceback.print_exc()
                     await self.parent.general_server_client.establish_websocket_connection()
-            await asyncio.sleep(5)
+           
