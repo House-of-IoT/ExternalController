@@ -1,6 +1,6 @@
 # Setup 
 
-To setup an instance of the external controller you will need to generate two config files along with the correct 
+To setup an instance of the ExternalController you will need to generate two config files along with the correct 
 environmental variables to match.
 
 ## The GeneralServer Client Config
