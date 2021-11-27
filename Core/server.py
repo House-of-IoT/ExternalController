@@ -46,6 +46,7 @@ class Server:
             try:
                 await self.gather_and_route_request(websocket)
             except Exception as e:
+                del self.devices[name]
                 traceback.print_exc()
                 break
             await asyncio.sleep(3)

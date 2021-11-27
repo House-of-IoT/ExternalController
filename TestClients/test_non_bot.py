@@ -66,7 +66,12 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
     async def check_recent_executed_relations(self,websocket,relation):
         response_dict = await self.execute_basic_request_reponse(websocket,"view_last_relations")
         self.assertEqual(response_dict["type"],"last_executed")
-        self.assertEqual(len(response_dict["relations"]),1)
+        """
+        The server could make multiple passed on the same relation during this test
+        so the exact amount of executions aren't known. We just know it should be
+        one or more.
+        """
+        self.assertTrue(len(response_dict["relations"])>0)
         self.assertTrue("datetime" in response_dict["relations"][0])
         self.compare_relations(relation,response_dict["relations"][0]["relation"])
     
@@ -103,9 +108,14 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
     async def check_action_history_after_execution(self,websocket):
         data_dict_response = await self.gather_one_send_request_response("executed_actions",websocket)
         data_dict_target_value = json.loads(data_dict_response["target_value"])
-        self.assertEqual(len(data_dict_target_value),1)
+        """
+        The server could make multiple passed on the same relation during this test
+        so the exact amount of executions aren't known. We just know it should be
+        one or more.
+        """
+        self.assertTrue(len(data_dict_target_value)>0)
         self.assertEqual(data_dict_target_value[0]["action"],"test_trigger")
-        self.assertEqual(data_dict_target_value[0]["executor"],"ExternalMonitor")
+        self.assertEqual(data_dict_target_value[0]["executor"],"ExternalController")
         self.assertEqual(data_dict_target_value[0]["bot_type"],"test_bot")
         self.assertEqual(data_dict_target_value[0]["bot_name"],"test_bot_execute")
 
