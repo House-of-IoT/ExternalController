@@ -8,8 +8,7 @@ from collections import deque
 import traceback
 
 class Server:
-    def __init__(self,parent,relations):
-        self.relations = relations
+    def __init__(self,parent):
         self.last_executed_relational_actions = deque()
         self.parent = parent
         self.devices = {}
@@ -38,10 +37,8 @@ class Server:
     
     def is_successfully_authenticated(self,name,user_password):
         if user_password == self.config["password"] and name not in self.devices:
-            print("authed")
             return True
         else:
-            print("not authed")
             return False
 
     async def main_loop(self,websocket,name):
@@ -87,7 +84,7 @@ class Server:
         #only add/remove relation if the relation is proven to be valid and 
         if(self.relation_is_valid(relation) ): 
             if request == "add_relation":
-                self.relations.append(relation)
+                self.parent.relation_manager.relations.append(relation)
                 self.update_other_relation_copies()
             else:
                 self.find_and_remove_relation(relation)
@@ -97,9 +94,8 @@ class Server:
             await asyncio.wait_for(websocket.send("issue"),10)
 
     def update_other_relation_copies(self):
-        self.parent.relation_manager.relations = self.relations
         with open("relations.json","w") as File:
-            File.write(json.dumps({"relations":self.relations}))
+            File.write(json.dumps({"relations":self.parent.relation_manager.relations}))
         
     def add_or_replace_last_executed_relation(self,relation):
         last_executed = LastExecuted(relation,datetime.utcnow())
@@ -123,14 +119,14 @@ class Server:
         current_relations_and_status = {
                 "status":"success",
                 "type":"current_relations",
-                "relations":self.relations}
+                "relations":self.parent.relation_manager.relations}
         await asyncio.wait_for(websocket.send(json.dumps(current_relations_and_status)),20)
 
     def find_and_remove_relation(self,target_relation):
-        for relation in self.relations:
+        for i,relation in enumerate(self.relations):
             #there can only be one relation with a unique action/device name.
             if relation["action"] == target_relation["action"] and relation["device_name"] == target_relation["device_name"]:
-               self.relations.remove(relation)
+               self.relations.pop(i)
                break
 
     def convert_last_executed_into_dict_list(self):

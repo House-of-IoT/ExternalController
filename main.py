@@ -10,7 +10,7 @@ class Main:
         self.config = gather_config()
         self.general_server_client = GeneralServerClient(self,self.config)
         self.relation_manager = RelationManager(self)
-        self.server = Server(self,self.relation_manager.relations)
+        self.server = Server(self)
 
     def start(self):
         print(self.server.config["host"])
