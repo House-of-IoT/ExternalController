@@ -1,5 +1,6 @@
 from termcolor import colored
 from colorama import init
+import asyncio
 
 class ConsoleLogger:
     def __init__(self,parent):
@@ -32,5 +33,21 @@ class ConsoleLogger:
         self.log_info(f"There are {len(self.parent.devices.keys())} devices currently connected to the server")
         self.log_info(f"Devices:{len(self.parent.devices)}\n")
 
-    def log_new_connection(self,name,client_type):
+    def log_new_connection(self,name):
         print(colored(f"[+] New Connection '{name}' \n","green"))
+
+    def log_new_relation_addition(self,relation):
+        bot_name = relation["device_name"]
+        bot_action = relation["action"]
+        amount_of_conditions = len(relation["conditions"])
+        self.log_generic_row(f"New relation for {bot_name} with the action of {bot_action} with {amount_of_conditions} conditions!\n","green")
+    
+    def log_new_relation_removal(self,relation):
+        bot_name = relation["device_name"]
+        amount_of_conditions = len(relation["conditions"])
+        self.log_generic_row(f"Relation for {bot_name} being removed! This relation has {amount_of_conditions} conditions!", "red")
+
+    async def reset_row_num(self):
+        while True:
+            await asyncio.sleep(86400)
+            self.row_number = 0

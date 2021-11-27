@@ -18,9 +18,7 @@ class Server:
 
     async def authenticate_client_after_connection(self,websocket,path):
         try:
-            
             credentials = await asyncio.wait_for(websocket.recv(),30)
-            print(credentials)
             credentials_dict = json.loads(credentials)
             gathered_password = credentials_dict["password"]
             gathered_name = credentials_dict["name"]
@@ -42,6 +40,7 @@ class Server:
             return False
 
     async def main_loop(self,websocket,name):
+        self.parent.console_logger.log_new_connection(name)
         while name in self.devices:
             try:
                 await self.gather_and_route_request(websocket)
@@ -77,7 +76,6 @@ class Server:
             #remove the oldest  from the queue and add the new one
             self.last_executed_relational_actions.popleft()
             self.last_executed_relational_actions.append(last_executed)
-
         else:
             self.last_executed_relational_actions.append(last_executed)
 

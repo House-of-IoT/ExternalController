@@ -2,6 +2,8 @@ import json
 import os
 import traceback
 import asyncio
+
+from websockets import exceptions
 """
 To Change?
 We are storing the device name twice after organization of bots
@@ -11,6 +13,7 @@ improvement on storage consumption.
 
 class RelationManager:
     def __init__(self,parent):
+        #consider changing relations to use a LinkedList for larger data sets.
         self.relations = self.get_relations()
         self.all_conditions_satisfied = None
         self.bots = {}
@@ -91,11 +94,13 @@ class RelationManager:
 
     async def add_or_remove_relation(self,websocket,relation,request):
         #only add/remove relation if the relation is proven to be valid and 
-        if(self.relation_is_valid(relation) ): 
+        if(self.relation_is_valid(relation)): 
             if request == "add_relation":
+                self.parent.console_logger.log_new_relation_addition(relation)
                 self.relations.append(relation)
                 self.update_other_relation_copies()
             else:
+                self.parent.console_logger.log_new_relation_removal(relation)
                 self.find_and_remove_relation(relation)
                 self.update_other_relation_copies()
             await asyncio.wait_for(websocket.send("success"),10)
@@ -109,9 +114,32 @@ class RelationManager:
     def find_and_remove_relation(self,target_relation):
         for i,relation in enumerate(self.relations):
             #there can only be one relation with a unique action/device name.
-            if relation["action"] == target_relation["action"] and relation["device_name"] == target_relation["device_name"]:
+            if self.relations_are_the_same(relation,target_relation):
                self.relations.pop(i)
                break
+
+    def relations_are_the_same(self,relation_one,relation_two):
+        try:
+            if relation_one["device_name"] == relation_two["device_name"]:
+                if relation_one["action"] == relation_two["action"]:
+                    relation_one_conditions = relation_one["conditions"]
+                    relation_two_conditions = relation_two["conditions"]
+                    for i in range(len(relation_one_conditions)):
+                        #for every key in the current condition dict
+                        for key in relation_one["conditions"][i].keys():
+                            relation_one_value = relation_one_conditions[i][key]
+                            relation_two_value = relation_two_conditions[i][key]
+                            if relation_one_value != relation_two_value:
+                                return False
+                    return True
+                else:
+                    return False
+
+            else:
+                return False
+        except Exception as e:
+            traceback.print_exc()
+            return False
 
     async def authenticate_if_needed(self,response):
         response_dict = json.loads(response)
