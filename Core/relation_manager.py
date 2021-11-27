@@ -79,6 +79,40 @@ class RelationManager:
             except Exception as e:
                 traceback.print_exc()
              
+    def relation_is_valid(self,relation):
+        try:
+            if "action" in relation and "device_name" in relation and "conditions" in relation and len(relation["conditions"])>0:
+                return True
+            else:
+                return False
+        except Exception as e:
+            traceback.print_exc()
+            return False
+
+    async def add_or_remove_relation(self,websocket,relation,request):
+        #only add/remove relation if the relation is proven to be valid and 
+        if(self.relation_is_valid(relation) ): 
+            if request == "add_relation":
+                self.relations.append(relation)
+                self.update_other_relation_copies()
+            else:
+                self.find_and_remove_relation(relation)
+                self.update_other_relation_copies()
+            await asyncio.wait_for(websocket.send("success"),10)
+        else:
+            await asyncio.wait_for(websocket.send("issue"),10)
+
+    def update_other_relation_copies(self):
+        with open("relations.json","w") as File:
+            File.write(json.dumps({"relations":self.parent.relation_manager.relations}))
+
+    def find_and_remove_relation(self,target_relation):
+        for i,relation in enumerate(self.relations):
+            #there can only be one relation with a unique action/device name.
+            if relation["action"] == target_relation["action"] and relation["device_name"] == target_relation["device_name"]:
+               self.relations.pop(i)
+               break
+
     async def authenticate_if_needed(self,response):
         response_dict = json.loads(response)
         if response_dict["status"] == "needs-admin-auth":

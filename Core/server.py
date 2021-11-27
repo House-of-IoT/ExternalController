@@ -58,7 +58,7 @@ class Server:
         if client_is_authed == False:
             await asyncio.wait_for(self.websocket.send("issue"),30)
         elif message["request"] == "add_relation" or message["request"] == "remove_relation":
-            await self.add_or_remove_relation(
+            await self.parent.relation_manager.add_or_remove_relation(
                 websocket,message["relation"],message["request"])
         elif message["request"] == "remove_all_relations":
             self.remove_all_relations()
@@ -69,33 +69,6 @@ class Server:
             await self.send_relations(websocket)
         else:
             await asyncio.wait_for(self.websocket.send("issue"),30)
-                
-    def relation_is_valid(self,relation):
-        try:
-            if "action" in relation and "device_name" in relation and "conditions" in relation and len(relation["conditions"])>0:
-                return True
-            else:
-                return False
-        except Exception as e:
-            traceback.print_exc()
-            return False
-
-    async def add_or_remove_relation(self,websocket,relation,request):
-        #only add/remove relation if the relation is proven to be valid and 
-        if(self.relation_is_valid(relation) ): 
-            if request == "add_relation":
-                self.parent.relation_manager.relations.append(relation)
-                self.update_other_relation_copies()
-            else:
-                self.find_and_remove_relation(relation)
-                self.update_other_relation_copies()
-            await asyncio.wait_for(websocket.send("success"),10)
-        else:
-            await asyncio.wait_for(websocket.send("issue"),10)
-
-    def update_other_relation_copies(self):
-        with open("relations.json","w") as File:
-            File.write(json.dumps({"relations":self.parent.relation_manager.relations}))
         
     def add_or_replace_last_executed_relation(self,relation):
         last_executed = LastExecuted(relation,datetime.utcnow())
@@ -121,14 +94,7 @@ class Server:
                 "type":"current_relations",
                 "relations":self.parent.relation_manager.relations}
         await asyncio.wait_for(websocket.send(json.dumps(current_relations_and_status)),20)
-
-    def find_and_remove_relation(self,target_relation):
-        for i,relation in enumerate(self.relations):
-            #there can only be one relation with a unique action/device name.
-            if relation["action"] == target_relation["action"] and relation["device_name"] == target_relation["device_name"]:
-               self.relations.pop(i)
-               break
-
+    
     def convert_last_executed_into_dict_list(self):
         queue_to_list = list(self.last_executed_relational_actions)
         executed_dict_list = []
