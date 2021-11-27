@@ -1,20 +1,16 @@
 import asyncio
 import json
-from os import name
-from Config.config import gather_config
-from .last_executed_relation import LastExecuted
+from last_executed_relation import LastExecuted
 from datetime import datetime
 from collections import deque
 import traceback
 
 class Server:
-    def __init__(self,parent):
+    def __init__(self,parent,config):
         self.last_executed_relational_actions = deque()
         self.parent = parent
         self.devices = {}
-        self.config = gather_config(
-            file_name = "server_config.json",
-            env_pw_name="hoi_exc_s_pw")
+        self.config = config
 
     async def authenticate_client_after_connection(self,websocket,path):
         try:
@@ -106,6 +102,7 @@ class Server:
         return executed_dict_list
 
     def remove_all_relations(self):
+        self.parent.relation_manager.relations = []
         with open("relations.json","w") as File:
             File.write(json.dumps({"relations":[]}))
 

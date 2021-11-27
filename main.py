@@ -10,9 +10,12 @@ class Main:
     def __init__(self):
         self.console_logger = ConsoleLogger(self)
         self.config = gather_config()
+        self.server_config = gather_config(
+            file_name = "server_config.json",
+            env_pw_name="hoi_exc_s_pw")
         self.general_server_client = GeneralServerClient(self,self.config)
         self.relation_manager = RelationManager(self)
-        self.server = Server(self)
+        self.server = Server(self,self.server_config)
 
     def start(self):
         self.console_logger.start_message()
