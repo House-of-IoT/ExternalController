@@ -18,7 +18,7 @@ environmental variables to match.
 ## Environmental variables
   - `hoi_exc_s_pw` is the password for the ExternalMonitor Server. This password is what clients will be prompted for when trying to connect.
   - `hoi_mdc_pw` is the password for the GeneralServer. This password is what will be used to try to connect to the GeneralServer when gathering passive data.
-   
+  - `hoi_exc_a_pw` is the admin password for the GeneralServer. THis password is needed for when admin authentication is required for action execution.
 ## Start
 There are two options to start the ExternalController:
 - Install all the dependencies locally and running `main.py`(in the root directory)
