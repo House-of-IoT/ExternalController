@@ -30,8 +30,7 @@ class ConsoleLogger:
         self.log_device_stats()
 
     def log_device_stats(self):
-        self.log_info(f"There are {len(self.parent.devices.keys())} devices currently connected to the server")
-        self.log_info(f"Devices:{len(self.parent.devices)}\n")
+        self.log_info(f"There are {len(self.parent.server.devices.keys())} devices currently connected to the server")
 
     def log_new_connection(self,name):
         print(colored(f"[+] New Connection '{name}' \n","green"))
@@ -45,7 +44,7 @@ class ConsoleLogger:
     def log_new_relation_removal(self,relation):
         bot_name = relation["device_name"]
         amount_of_conditions = len(relation["conditions"])
-        self.log_generic_row(f"Relation for {bot_name} being removed! This relation has {amount_of_conditions} conditions!", "red")
+        self.log_generic_row(f"Relation for {bot_name} being removed! This relation has {amount_of_conditions} conditions!\n", "red")
 
     async def reset_row_num(self):
         while True:

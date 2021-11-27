@@ -35,7 +35,7 @@ class GeneralServerClient:
 
     async def gather_data_and_analyze(self):
         self.parent.console_logger.log_generic_row(
-            "Successfully connected to the GeneralServer with authetication","green")
+            "Successfully connected to the GeneralServer with authetication\n","green")
         while True:
             await asyncio.sleep(5)
             try:

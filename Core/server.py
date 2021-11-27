@@ -44,9 +44,10 @@ class Server:
         while name in self.devices:
             try:
                 await self.gather_and_route_request(websocket)
-            except Exception as e:
+            except:
+                self.parent.console_logger.log_generic_row(f"{name} was disconnected from the server!\n","red")
+                self.parent.console_logger.log_device_stats()
                 del self.devices[name]
-                traceback.print_exc()
                 break
             await asyncio.sleep(3)
     
