@@ -1,9 +1,13 @@
 import asyncio
 import json
-from last_executed_relation import LastExecuted
 from datetime import datetime
 from collections import deque
 import traceback
+
+class LastExecuted:
+    def __init__(self,relation,time_data):
+        self.relation = relation
+        self.time_data = time_data
 
 class Server:
     def __init__(self,parent,config):
