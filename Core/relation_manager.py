@@ -84,6 +84,7 @@ class RelationManager:
              
     def relation_is_valid(self,relation):
         try:
+            print(relation)
             if "action" in relation and "device_name" in relation and "conditions" in relation and len(relation["conditions"])>0:
                 return True
             else:
@@ -93,8 +94,10 @@ class RelationManager:
             return False
 
     async def add_or_remove_relation(self,websocket,relation,request):
-        #only add/remove relation if the relation is proven to be valid and 
-        if(self.relation_is_valid(relation)): 
+        #only add/remove relation if the relation is proven to be valid 
+        relation_is_valid = self.relation_is_valid(relation)
+        print(relation_is_valid)
+        if(relation_is_valid): 
             if request == "add_relation":
                 self.parent.console_logger.log_new_relation_addition(relation)
                 self.relations.append(relation)
