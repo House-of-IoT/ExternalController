@@ -4,6 +4,7 @@ import asyncio
 
 class ConsoleLogger:
     def __init__(self,parent):
+        init()
         self.row_number = 0
         self.parent = parent
 
